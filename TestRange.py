@@ -1,7 +1,7 @@
 import os
 
 channel = 11
-duration_time = 5
+duration_time = 10
 
 os.popen("airport -z").read()
 os.popen("airport --channel=%s" % channel).read()
