@@ -13,29 +13,30 @@ def live_capture(channel, duration_time):
 
 
 # Parsing
-'''
-addr1: dest
-addr2: src
-addr3: BSSID
-
-0 0： AssoReq
-
-'''
-
-cnt = 0
-
-
 def parse(frame):
+    '''
+    addr1: dest
+    addr2: src
+    addr3: BSSID
+
+    More about Dot11:
+    https://stackoverflow.com/questions/30811426/scapy-python-get-802-11-ds-status
+    '''
     global cnt
     cnt += 1
     if frame.haslayer(Dot11) and frame.type == 0 and frame.subtype == 0:
         # Parsing
         print("No.", cnt)
+        print("ToDS:", frame.FCfield & 0b1 != 0)
+        print("MF", frame.FCfield & 0b10 != 0)
+        print("WEP", frame.FCfield & 0b01000000 != 0)
         print("src MAC:", frame.addr2)
         print("dest MAC:", frame.addr1)
-        print("BSSID:", frame.addr3, "\n")
+        print("BSSID:", frame.addr3)
+
+        print("\n")
 
 
 if __name__ == '__main__':
-    # file_path = live_capture(channel=11, duration_time=10)
+    # file_path = live_capture(channel=11, duration_time=10)  # Require permission
     sniff(offline="/tmp/capture_chan11.pcap", prn=parse)
