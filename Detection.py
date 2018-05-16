@@ -7,12 +7,16 @@ from scapy.all import *
 def live_capture(channel, duration_time):
     os.popen("airport -z").read()
     os.popen("airport --channel=%s" % channel).read()
-    os.popen("tshark -a duration:%s -s0 -I -i en0 -f 'not type data' -w /tmp/capture_chan%s.pcap -F pcap" % (
-        duration_time, channel)).read()
+    os.popen("tshark -a duration:%s -I -i en0 -w /tmp/capture_chan%s.pcap -F pcap" % (
+         duration_time, channel)).read()
+
+    # os.popen("tshark -a duration:%s -s0 -I -i en0 -f 'not type data' -w /tmp/capture_chan%s.pcap -F pcap" % (
+    #          duration_time, channel)).read()
     return "/tmp/capture_chan%s.pcap" % channel
 
 
 # Parsing
+cnt = 0
 def parse(frame):
     '''
     addr1: dest
@@ -28,8 +32,8 @@ def parse(frame):
         # Parsing
         print("No.", cnt)
         print("ToDS:", frame.FCfield & 0b1 != 0)
-        print("MF", frame.FCfield & 0b10 != 0)
-        print("WEP", frame.FCfield & 0b01000000 != 0)
+        print("MF:", frame.FCfield & 0b10 != 0)
+        print("WEP:", frame.FCfield & 0b01000000 != 0)
         print("src MAC:", frame.addr2)
         print("dest MAC:", frame.addr1)
         print("BSSID:", frame.addr3)
