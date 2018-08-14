@@ -5,6 +5,8 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="Detection.Dot11" />
+          <option value="Detector.Dot11" />
+          <option value="LiveDetection.Dot11" />
         </list>
       </option>
     </inspection_tool>

@@ -1,6 +1,7 @@
-# WirelessIntrusionDetection
-Capture 802.11 frames and identify hostile ones based on DNN. 
+# Wireless Signal Intrusion Detection
 
-* Make sure your wireless adapter supports MONITOR mode. 
-* Bacause the capturing is actually done by macOS terminal, the program will not work on Windows unless you modify the shell script. 
-* The project is in progress. Any help is welcome. 
+Capture 802.11 frames meanwhile detect authentication/deauthentication attacks based on a neural network.
+
+* It is a program for MacOS.
+* The project requires administrator authority.
+* Network connection will be severed when running this program.
