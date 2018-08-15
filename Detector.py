@@ -1,3 +1,5 @@
+# Wireless Signal Intrusion Detection
+
 import tensorflow as tf
 from scapy.all import *
 
@@ -47,6 +49,7 @@ def normalize(frame):
     return [vector]
 
 
+# Neural layer
 def nn_layer(input_matrix, preceding_layer_neuron_num, this_layer_neuron_num, keep_prob, activation_function=None):
     weights = tf.Variable(tf.truncated_normal(shape=[preceding_layer_neuron_num, this_layer_neuron_num], stddev=0.5),
                           name="Weight")
@@ -60,37 +63,37 @@ def nn_layer(input_matrix, preceding_layer_neuron_num, this_layer_neuron_num, ke
     return output_matrix
 
 
+# Neural network model
 class Detector(object):
 
     def __init__(self):
-        # 占位符
+        # Placeholders
         self.data = tf.placeholder(tf.float32, [None, 5], name="feature")
         self.label = tf.placeholder(tf.float32, [None, 3], name="label")
         self.keep_prob = tf.placeholder(tf.float32)
-        # 隐含层
+        # Hidden layers
         l1 = nn_layer(self.data, 5, 10, self.keep_prob, activation_function=tf.nn.relu)
         l2 = nn_layer(l1, 10, 10, self.keep_prob, activation_function=tf.nn.relu)
         l3 = nn_layer(l2, 10, 10, self.keep_prob, activation_function=tf.nn.relu)
-        # 输出层
+        # Output layer
         self.output = nn_layer(l3, 10, 3, 1.0, activation_function=tf.nn.softmax)
-        # 损失与优化
+        # Loss and optimization
         loss = tf.reduce_mean(tf.square(self.label - self.output))
         self.training = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
-        # 建立会话
+        # Session
         self.sess = tf.Session()
-        # 初始化变量
+        # Initialization
         init = tf.global_variables_initializer()
         self.sess.run(init)
-        # 建立保存/读取器
+        # Saver
         self.saver = tf.train.Saver()
 
     def training(self):
         print("Training in progress... ")
-        # 读取Auth
+        # Read pcap files
         sniff(offline="./Auth_1.pcap", prn=parse_auth)
-        # 读取Deauth
         sniff(offline="./Deauth_1.pcap", prn=parse_deauth)
-        # 训练
+        # Training
         for i in range(10000):
             self.sess.run(self.training,
                           feed_dict={self.data: [[1, 1, 1, 1, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
@@ -101,14 +104,14 @@ class Detector(object):
             if i % 100 == 0:
                 print(i / 100, "%")
         print("Training finished. ")
-        # 保存
+        # Save model parameters
         self.saver.save(self.sess, "./Model/WSID/")  # file_name如果不存在的话，会自动创建
 
     def detect(self, vector):
         if os.path.exists("./WSID/"):
-            # 读取
+            # Restore model parameters
             self.saver.restore(self.sess, "./WSID/")
-            # 使用模型
+            # USE the model
             return self.sess.run(self.output, feed_dict={self.data: vector, self.keep_prob: 1.0})
         else:
             print("Training required. ")

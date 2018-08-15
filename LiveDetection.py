@@ -4,18 +4,18 @@ from scapy.all import *
 from Detector import Detector
 from Detector import normalize
 
+# Parameters
+BUFFER_PATH = "/tmp/capture/"
+CHANNEL = 9
+DURATION_TIME = 20
+
 # Global variables
 cnt = 0
 seq = 0
 detector = Detector()
 
-# Parameters
-BUFFER_PATH = "/tmp/capture/"
-CHANNEL = 9
-DURATION_TIME = 15
 
-
-# Capture and save as a pacp file
+# Capture via Terminal.app
 def live_capture(channel, duration_time):
     os.popen("airport -z").read()
     os.popen("airport --channel=%s" % channel).read()
@@ -23,10 +23,12 @@ def live_capture(channel, duration_time):
              (duration_time, BUFFER_PATH)).read()
 
 
+# Capture thread
 def capture_thread():
     live_capture(CHANNEL, DURATION_TIME)  # Require permission
 
 
+# modify the sequence number
 def modify(seq):
     if len(str(seq)) == 1:
         return "0000" + str(seq)
@@ -40,6 +42,7 @@ def modify(seq):
         return str(seq)
 
 
+# Searching for every pcap file in given directory
 def search():
     global cnt
     global seq
@@ -49,16 +52,15 @@ def search():
     for _, _, file_names in os.walk(BUFFER_PATH):
         for file_name in file_names:
             if file_name.find(modify(seq)) >= 0:
-                print("Sniffing", file_name)
                 status = 1
+                print("Sniffing", file_name)
                 sniff(offline=BUFFER_PATH + file_name, prn=parse)
                 print("Sniffing finished. ")
-    if status == 0:
-        print("File not found. ")
-        seq = seq - 1
+                print("------------------------------------------------------")
+    return status
 
 
-# Parsing
+# Parse 802.11 frames
 def parse(frame):
     global cnt
     global detector
@@ -70,15 +72,14 @@ def parse(frame):
             if result[0][0] > 0.5 and result[0][1] < 0.5 and result[0][2] < 0.5:
                 print("802.11 frame no." + str(cnt) + ":", "Authentication attack detected!")
                 # print(frame.show())
-                print("---------------------------------------------")
             elif result[0][0] < 0.5 and result[0][1] > 0.5 and result[0][2] < 0.5:
                 print("802.11 frame no." + str(cnt) + ":", "Deauthentication attack detected!")
                 # print(frame.show())
-                print("---------------------------------------------")
 
 
 if __name__ == '__main__':
 
+    # Ensure the buffer directory
     if os.path.exists(BUFFER_PATH):
         for _, _, file_names in os.walk(BUFFER_PATH):
             for file_name in file_names:
@@ -86,11 +87,14 @@ if __name__ == '__main__':
     else:
         os.makedirs(BUFFER_PATH)
 
+    # Capture frames in a branch thread
     cap_thread = threading.Thread(target=capture_thread)
     cap_thread.start()
 
+    # While sniffing pcap files in main thread
     time.sleep(1)
     print("starting sniffing")
     while 1:
         time.sleep(1)
-        search()
+        if search() == 0:
+            break

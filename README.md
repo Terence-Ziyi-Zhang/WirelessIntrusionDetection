@@ -1,6 +1,6 @@
 # Wireless Signal Intrusion Detection
 
-Capture 802.11 frames meanwhile detect authentication/deauthentication attacks based on a neural network.
+Capturing 802.11 frames while detecting authentication/deauthentication attacks based on a neural network.
 
 * It is for MacOS.
 * The project requires administrator authority.
