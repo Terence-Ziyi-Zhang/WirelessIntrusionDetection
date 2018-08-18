@@ -4,11 +4,6 @@ from scapy.all import *
 from Detector import Detector
 from Detector import normalize
 
-# Parameters
-BUFFER_PATH = "/tmp/capture/"
-CHANNEL = 9
-DURATION_TIME = 20
-
 # Global variables
 cnt = 0
 seq = 0
@@ -16,16 +11,16 @@ detector = Detector()
 
 
 # Capture via Terminal.app
-def live_capture(channel, duration_time):
+def live_capture(channel, duration_time, buffer_path):
     os.popen("airport -z").read()
     os.popen("airport --channel=%s" % channel).read()
     os.popen("tshark -a duration:%s -b duration:1 -I -i en0 -n -w %scapture.pcap -F pcap" %
-             (duration_time, BUFFER_PATH)).read()
+             (duration_time, buffer_path)).read()
 
 
 # Capture thread
-def capture_thread():
-    live_capture(CHANNEL, DURATION_TIME)  # Require permission
+def capture_thread(channel, duration_time, buffer_path):
+    live_capture(channel, duration_time, buffer_path)  # Require permission
 
 
 # modify the sequence number
@@ -43,18 +38,18 @@ def modify(seq):
 
 
 # Searching for every pcap file in given directory
-def search():
+def search(buffer_path):
     global cnt
     global seq
     cnt = 0
     seq = seq + 1
     status = 0
-    for _, _, file_names in os.walk(BUFFER_PATH):
+    for _, _, file_names in os.walk(buffer_path):
         for file_name in file_names:
             if file_name.find(modify(seq)) >= 0:
                 status = 1
                 print("Sniffing", file_name)
-                sniff(offline=BUFFER_PATH + file_name, prn=parse)
+                sniff(offline=buffer_path + file_name, prn=parse)
                 print("Sniffing finished. ")
                 print("------------------------------------------------------")
     return status
@@ -77,8 +72,20 @@ def parse(frame):
                 # print(frame.show())
 
 
-if __name__ == '__main__':
+def inspect_thread(buffer_path):
+    # While sniffing pcap files in main thread
+    global seq
+    seq = 0
+    time.sleep(1)
+    print("starting Detection")
+    while 1:
+        time.sleep(1)
+        if search(buffer_path) == 0:
+            print("Detection finished.")
+            break
 
+
+def activate(CHANNEL, DURATION_TIME, BUFFER_PATH):
     # Ensure the buffer directory
     if os.path.exists(BUFFER_PATH):
         for _, _, file_names in os.walk(BUFFER_PATH):
@@ -88,13 +95,11 @@ if __name__ == '__main__':
         os.makedirs(BUFFER_PATH)
 
     # Capture frames in a branch thread
-    cap_thread = threading.Thread(target=capture_thread)
+    cap_thread = threading.Thread(target=capture_thread, args=(CHANNEL, DURATION_TIME, BUFFER_PATH))
+    ins_thread = threading.Thread(target=inspect_thread, args=(BUFFER_PATH,))
     cap_thread.start()
+    ins_thread.start()
 
-    # While sniffing pcap files in main thread
-    time.sleep(1)
-    print("starting sniffing")
-    while 1:
-        time.sleep(1)
-        if search() == 0:
-            break
+
+if __name__ == '__main__':
+    activate(CHANNEL=9, DURATION_TIME=20, BUFFER_PATH="/tmp/capture/")
