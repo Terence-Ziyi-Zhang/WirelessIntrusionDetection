@@ -77,11 +77,11 @@ def inspect_thread(buffer_path):
     global seq
     seq = 0
     time.sleep(1)
-    print("starting Detection")
+    print("*** Detection started. ***")
     while 1:
         time.sleep(1)
         if search(buffer_path) == 0:
-            print("Detection finished.")
+            print("*** Detection finished. ***")
             break
 
 
@@ -102,4 +102,4 @@ def activate(CHANNEL, DURATION_TIME, BUFFER_PATH):
 
 
 if __name__ == '__main__':
-    activate(CHANNEL=9, DURATION_TIME=20, BUFFER_PATH="/tmp/capture/")
+    activate(CHANNEL="9", DURATION_TIME="5", BUFFER_PATH="/tmp/capture/")
