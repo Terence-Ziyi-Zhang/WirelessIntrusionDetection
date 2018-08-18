@@ -5,3 +5,5 @@ Capturing 802.11 frames while detecting authentication/deauthentication attacks 
 * It is for MacOS.
 * The project requires administrator authority.
 * Network connection will be severed when running this program.
+
+*Just run LiveDetection.py*
