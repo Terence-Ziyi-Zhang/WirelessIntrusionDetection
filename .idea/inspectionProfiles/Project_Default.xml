@@ -7,6 +7,8 @@
           <option value="Detection.Dot11" />
           <option value="Detector.Dot11" />
           <option value="LiveDetection.Dot11" />
+          <option value="Test.Dot11" />
+          <option value="PyQt5.Qt.QLineEdit" />
         </list>
       </option>
     </inspection_tool>

@@ -88,7 +88,7 @@ class Detector(object):
         # Saver
         self.saver = tf.train.Saver()
 
-    def training(self):
+    def train(self):
         print("Training in progress... ")
         # Read pcap files
         sniff(offline="./Auth_1.pcap", prn=parse_auth)
@@ -100,17 +100,21 @@ class Detector(object):
             self.sess.run(self.training,
                           feed_dict={self.data: auth_set[i % 4000], self.label: [[1, 0, 0]], self.keep_prob: 0.5})
             self.sess.run(self.training,
+                          feed_dict={self.data: [[1, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
+            self.sess.run(self.training,
                           feed_dict={self.data: deauth_set[i % 6000], self.label: [[0, 1, 0]], self.keep_prob: 0.5})
+            self.sess.run(self.training,
+                          feed_dict={self.data: [[0, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
             if i % 100 == 0:
                 print(i / 100, "%")
         print("Training finished. ")
         # Save model parameters
-        self.saver.save(self.sess, "./Model/WSID/")  # file_name如果不存在的话，会自动创建
+        self.saver.save(self.sess, "./WSID2/")  # file_name如果不存在的话，会自动创建
 
     def detect(self, vector):
-        if os.path.exists("./WSID/"):
+        if os.path.exists("./WSID2/"):
             # Restore model parameters
-            self.saver.restore(self.sess, "./WSID/")
+            self.saver.restore(self.sess, "./WSID2/")
             # USE the model
             return self.sess.run(self.output, feed_dict={self.data: vector, self.keep_prob: 1.0})
         else:
@@ -122,3 +126,5 @@ if __name__ == '__main__':
     detector.detect([[0, 1, 1, 1, 0]])
     detector.detect([[0, 0, 0, 0, 1]])
     detector.detect([[1, 1, 1, 1, 1]])
+    detector.detect([[1, 1, 1, 0, 1]])
+    detector.detect([[0, 1, 1, 0, 1]])

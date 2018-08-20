@@ -12,15 +12,10 @@ detector = Detector()
 
 # Capture via Terminal.app
 def live_capture(channel, duration_time, buffer_path):
-    os.popen("airport -z").read()
-    os.popen("airport --channel=%s" % channel).read()
+    # os.popen("airport -z")
+    os.popen("airport --channel=%s" % channel)
     os.popen("tshark -a duration:%s -b duration:1 -I -i en0 -n -w %scapture.pcap -F pcap" %
-             (duration_time, buffer_path)).read()
-
-
-# Capture thread
-def capture_thread(channel, duration_time, buffer_path):
-    live_capture(channel, duration_time, buffer_path)  # Require permission
+             (duration_time, buffer_path))
 
 
 # modify the sequence number
@@ -65,11 +60,11 @@ def parse(frame):
             vector = normalize(frame)
             result = detector.detect(vector)
             if result[0][0] > 0.5 and result[0][1] < 0.5 and result[0][2] < 0.5:
-                print("802.11 frame no." + str(cnt) + ":", "Authentication attack detected!")
-                # print(frame.show())
+                print("802.11 frame no." + str(
+                    cnt) + ":", "Authentication attack detected!", "AP:", frame.addr1, "under attack! ")
             elif result[0][0] < 0.5 and result[0][1] > 0.5 and result[0][2] < 0.5:
-                print("802.11 frame no." + str(cnt) + ":", "Deauthentication attack detected!")
-                # print(frame.show())
+                print("802.11 frame no." + str(
+                    cnt) + ":", "Deauthentication attack detected!", "AP:", frame.addr2, "under attack!")
 
 
 def inspect_thread(buffer_path):
@@ -95,11 +90,12 @@ def activate(CHANNEL, DURATION_TIME, BUFFER_PATH):
         os.makedirs(BUFFER_PATH)
 
     # Capture frames in a branch thread
-    cap_thread = threading.Thread(target=capture_thread, args=(CHANNEL, DURATION_TIME, BUFFER_PATH))
+    cap_thread = threading.Thread(target=live_capture, args=(CHANNEL, DURATION_TIME, BUFFER_PATH))
     ins_thread = threading.Thread(target=inspect_thread, args=(BUFFER_PATH,))
     cap_thread.start()
     ins_thread.start()
 
 
 if __name__ == '__main__':
-    activate(CHANNEL="9", DURATION_TIME="5", BUFFER_PATH="/tmp/capture/")
+    # activate(CHANNEL="9", DURATION_TIME="5", BUFFER_PATH="/tmp/capture/")
+    sniff(offline="/tmp/pcap/Deauth_1.pcap", prn=parse)

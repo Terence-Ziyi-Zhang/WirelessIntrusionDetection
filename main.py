@@ -1,16 +1,14 @@
-import sys
 import os
-import time
+import sys
 import threading
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QAction, QMessageBox, QLabel
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
-from PyQt5.Qt import QLineEdit
-from LiveDetection import capture_thread
-from LiveDetection import inspect_thread
 
-import inspect
-import ctypes
+from PyQt5.Qt import QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QTextEdit
+
+from LiveDetection import inspect_thread
+from LiveDetection import live_capture
+
+global content
 
 
 class App(QWidget):
@@ -46,7 +44,7 @@ class App(QWidget):
         self.duration_time = QLineEdit(self)
         self.duration_time.move(110, 50)
         self.duration_time.resize(50, 20)
-        self.duration_time.setText("10")
+        self.duration_time.setText("inf")
 
         # 缓存路径
         self.label3 = QLabel(self)
@@ -63,6 +61,7 @@ class App(QWidget):
         self.activate.move(50, 130)
         self.activate.clicked.connect(self.on_click1)
 
+        # 停止按钮
         self.stop = QPushButton('Stop', self)
         self.stop.move(150, 130)
         self.stop.clicked.connect(self.on_click2)
@@ -71,10 +70,11 @@ class App(QWidget):
         self.cap_thread = threading.Thread()
         self.ins_thread = threading.Thread()
 
+        os.popen("airport -z")
+
         self.show()
 
     def on_click1(self):
-
         # 获取参数
         channel = self.channel.text()
         duration_time = self.duration_time.text()
@@ -94,7 +94,7 @@ class App(QWidget):
                 os.makedirs(buffer_path)
 
             # 设置线程
-            self.cap_thread = threading.Thread(target=capture_thread, args=(channel, duration_time, buffer_path))
+            self.cap_thread = threading.Thread(target=live_capture, args=(channel, duration_time, buffer_path))
             self.ins_thread = threading.Thread(target=inspect_thread, args=(buffer_path,))
 
             # 开始线程
@@ -102,34 +102,33 @@ class App(QWidget):
             self.ins_thread.start()
 
     def on_click2(self):
-        # 如何彻底杀掉进程？
         if self.cap_thread.isAlive() or self.ins_thread.isAlive():
-            if self.cap_thread.isAlive():
-                _async_raise(self.cap_thread.ident, SystemExit)
-                self.cap_thread = None
-                self.cap_thread = threading.Thread()
+            # 杀掉进程
+            PIDs = os.popen("ps -e | grep 'tshark' | awk '{print $1}'").read()
+            PID = ""
+            for i in range(10):
+                if i < len(PIDs):
+                    if not PIDs[i] == '\n':
+                        PID = PID + PIDs[i]
+                    else:
+                        break
+            os.popen("kill -9 " + PID).read()
+        else:
+            print("*** No Detection is on! ***")
 
-            if self.ins_thread.isAlive():
-                _async_raise(self.ins_thread.ident, SystemExit)
-                self.ins_thread = None
-                self.ins_thread = threading.Thread()
-            print("*** Detection stopped. ***")
-
-
-# 暂停线程
-def _async_raise(tid, exctype):
-    """raises the exception, performs cleanup if needed"""
-    tid = ctypes.c_long(tid)
-    if not inspect.isclass(exctype):
-        exctype = type(exctype)
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
-    if res == 0:
-        raise ValueError("invalid thread id")
-    elif res != 1:
-        # """if it returns a number greater than one, you're in trouble,
-        # and you should call it again with exc=NULL to revert the effect"""
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
-        raise SystemError("PyThreadState_SetAsyncExc failed")
+    def closeEvent(self, event):
+        if self.cap_thread.isAlive() or self.ins_thread.isAlive():
+            # 杀掉进程
+            PIDs = os.popen("ps -e | grep 'tshark' | awk '{print $1}'").read()
+            PID = ""
+            for i in range(10):
+                if i < len(PIDs):
+                    if not PIDs[i] == '\n':
+                        PID = PID + PIDs[i]
+                    else:
+                        break
+            os.popen("kill -9 " + PID)
+        os.popen("ifconfig en0 up")
 
 
 if __name__ == '__main__':
