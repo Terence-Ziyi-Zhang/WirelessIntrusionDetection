@@ -118,7 +118,7 @@ class Detector(object):
             # USE the model
             return self.sess.run(self.output, feed_dict={self.data: vector, self.keep_prob: 1.0})
         else:
-            print("Training required. ")
+            print("Training required! ")
 
 
 if __name__ == '__main__':

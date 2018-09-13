@@ -98,4 +98,4 @@ def activate(CHANNEL, DURATION_TIME, BUFFER_PATH):
 
 if __name__ == '__main__':
     # activate(CHANNEL="9", DURATION_TIME="5", BUFFER_PATH="/tmp/capture/")
-    sniff(offline="/tmp/pcap/Deauth_1.pcap", prn=parse)
+    sniff(offline="./Auth_1.pcap", prn=parse)
