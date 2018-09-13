@@ -96,15 +96,15 @@ class Detector(object):
         # Training
         for i in range(10000):
             self.sess.run(self.training,
-                          feed_dict={self.data: [[1, 1, 1, 1, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
+                          feed_dict={self.data: [[1, 1, 1, 1, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})  # 正常
             self.sess.run(self.training,
-                          feed_dict={self.data: auth_set[i % 4000], self.label: [[1, 0, 0]], self.keep_prob: 0.5})
+                          feed_dict={self.data: auth_set[i % 4000], self.label: [[1, 0, 0]], self.keep_prob: 0.5})  # auth
             self.sess.run(self.training,
-                          feed_dict={self.data: [[1, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
+                          feed_dict={self.data: [[1, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})  # 正常
             self.sess.run(self.training,
-                          feed_dict={self.data: deauth_set[i % 6000], self.label: [[0, 1, 0]], self.keep_prob: 0.5})
+                          feed_dict={self.data: deauth_set[i % 6000], self.label: [[0, 1, 0]], self.keep_prob: 0.5})  # deauth
             self.sess.run(self.training,
-                          feed_dict={self.data: [[0, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})
+                          feed_dict={self.data: [[0, 1, 1, 0, 1]], self.label: [[0, 0, 1]], self.keep_prob: 0.5})  # 正常
             if i % 100 == 0:
                 print(i / 100, "%")
         print("Training finished. ")
@@ -123,8 +123,8 @@ class Detector(object):
 
 if __name__ == '__main__':
     detector = Detector()
-    detector.detect([[0, 1, 1, 1, 0]])
-    detector.detect([[0, 0, 0, 0, 1]])
-    detector.detect([[1, 1, 1, 1, 1]])
-    detector.detect([[1, 1, 1, 0, 1]])
-    detector.detect([[0, 1, 1, 0, 1]])
+    print(detector.detect([[0, 1, 1, 1, 0]]))
+    print(detector.detect([[0, 0, 0, 0, 1]]))
+    print(detector.detect([[1, 1, 1, 1, 1]]))
+    print(detector.detect([[1, 1, 1, 0, 1]]))
+    print(detector.detect([[0, 1, 1, 0, 1]]))
